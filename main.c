@@ -1,8 +1,14 @@
 #include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
 static gboolean delete(GtkWindow*, GdkEvent*);
+static void *emalloc(size_t);
+static void eprintf(char*, ...);
+static char *estrdup(char*);
+
+#include "util.c"
 
 gboolean
 delete(GtkWindow *w, GdkEvent *e) {
