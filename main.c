@@ -6,14 +6,33 @@
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
+#define LEN(x)  (sizeof (x) / sizeof ((x)[0]))
+#define LOCK    (GDK_LOCK_MASK|GDK_MOD2_MASK|GDK_MOD3_MASK)
+#define MOD     (GDK_SHIFT_MASK|GDK_CONTROL_MASK|\
+                 GDK_MOD1_MASK|GDK_MOD4_MASK|GDK_MOD5_MASK)
+
+typedef struct {
+    int         i;
+    char        *c;
+    gboolean    b;
+} Arg;
+
 typedef struct {
     GtkWindow           *win;
     GtkScrolledWindow   *scroll;
     WebKitWebView       *web;
 } Win;
 
+typedef struct {
+    unsigned int    mod;
+    char            *key;
+    void            (*func)(Win*, Arg*);
+    Arg             arg;
+} Key;
+
 struct {
     GList   *wins;
+    Key     *keys;
 } data;
 
 /* event.c */
@@ -25,6 +44,10 @@ static gboolean message(WebKitWebView*, char*, int, char*);
 static WebKitWebView* newwin(WebKitWebView*, WebKitWebFrame*);
 static gboolean scrollbars(WebKitWebFrame*);
 static void status(GObject*, GParamSpec*, Win*);
+/* key.c */
+static void keyprevnext(Win*, Arg*);
+static void keyreload(Win*, Arg*);
+static void keystop(Win*, Arg*);
 /* main.c */
 static void clean(void);
 static void init(int*, char***);
@@ -40,6 +63,7 @@ static void win_load(Win*, char*);
 
 #include "util.c"
 #include "win.c"
+#include "key.c"
 #include "event.c"
 
 void

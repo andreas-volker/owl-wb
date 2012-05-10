@@ -29,14 +29,28 @@ grabdom(GObject *o, WebKitDOMEvent *e, void *ptr) {
 
 gboolean
 keypress(GtkWidget *gw, GdkEvent *e, Win *w) {
-    static gboolean b = FALSE;
+    int i;
+    char a[7], *c;
+    GdkKeymap *km;
+    unsigned int kv;
+    GdkKeymapKey *kk;
     (void)gw;
 
-    if(!(e->key.state & GDK_CONTROL_MASK))
-        return FALSE;
-    b = !b;
-    gtk_widget_grab_focus(b ? GTK_WIDGET(w->scroll) : GTK_WIDGET(w->web));
-    return TRUE;
+    km = gdk_keymap_get_default();
+    gdk_keymap_get_entries_for_keyval(km, e->key.keyval, &kk, &i);
+    kk[0].level = 0;
+    kk[0].keycode = e->key.hardware_keycode;
+    kv = gdk_keymap_lookup_key(km, kk);
+    c = gdk_keyval_name(kv);
+    i = g_unichar_to_utf8(gdk_keyval_to_unicode(kv), a);
+    a[i] = '\0';
+    for(i = 0; i < (int)LEN(keys); i++)
+        if((!strcmp(keys[i].key, c) || !strcmp(keys[i].key, a)) &&
+           keys[i].func && ((e->key.state & ~LOCK & MOD) == keys[i].mod)) {
+            keys[i].func(w, &(keys[i].arg));
+            return TRUE;
+        }
+    return FALSE;
 }
 
 gboolean
