@@ -1,44 +1,75 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
+#include <signal.h>
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
-static gboolean delete(GtkWindow*, GdkEvent*);
+typedef struct {
+    GtkWindow           *win;
+    GtkScrolledWindow   *scroll;
+    WebKitWebView       *web;
+} Win;
+
+struct {
+    GList   *wins;
+} data;
+
+/* event.c */
+static void event_init(Win*);
+static gboolean delwin(GtkWidget*, GdkEvent*, Win*);
+static void grabdom(GObject*, WebKitDOMEvent*, void*);
+static gboolean keypress(GtkWidget*, GdkEvent*, Win*);
+static gboolean message(WebKitWebView*, char*, int, char*);
+static WebKitWebView* newwin(WebKitWebView*, WebKitWebFrame*);
+static gboolean scrollbars(WebKitWebFrame*);
+static void status(GObject*, GParamSpec*, Win*);
+/* main.c */
+static void clean(void);
+static void init(int*, char***);
+static void sighdl(int);
+/* util.c */
 static void *emalloc(size_t);
 static void eprintf(char*, ...);
 static char *estrdup(char*);
+/* win.c */
+static Win *win_create(void);
+static void win_destroy(void*);
+static void win_load(Win*, char*);
 
 #include "util.c"
+#include "win.c"
+#include "event.c"
 
-gboolean
-delete(GtkWindow *w, GdkEvent *e) {
-    (void)w; (void)e;
+void
+clean(void) {
+    return;
+}
 
-    gtk_main_quit();
-    return TRUE;
+void
+init(int *argc, char ***argv) {
+    Win *w;
+
+    gtk_init(&(*argc), &(*argv));
+    data.wins = NULL;
+    w = win_create();
+    win_load(w, (*argv)[1]);
+    signal(SIGINT, sighdl);
+    signal(SIGTERM, sighdl);
+}
+
+void
+sighdl(int i) {
+    (void)i;
+
+    g_list_free_full(data.wins, win_destroy);
 }
 
 int
-main(int argc, char *argv[]) {
-    GtkWindow *win;
-    WebKitWebView *web;
-    GtkScrolledWindow *scroll;
-
-    if(argc < 2)
-        return EXIT_FAILURE;
-    gtk_init(&argc, &argv);
-    win = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-    scroll = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
-    web = WEBKIT_WEB_VIEW(webkit_web_view_new());
-    g_signal_connect(win, "delete_event", G_CALLBACK(delete), NULL);
-    gtk_container_add(GTK_CONTAINER(scroll), GTK_WIDGET(web));
-    gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(scroll));
-    gtk_widget_grab_focus(GTK_WIDGET(web));
-    gtk_widget_show_all(GTK_WIDGET(win));
-    webkit_web_view_load_uri(web, argv[1]);
+main(int argc, char **argv) {
+    init(&argc, &argv);
     gtk_main();
-    gtk_widget_destroy(GTK_WIDGET(web));
-    gtk_widget_destroy(GTK_WIDGET(scroll));
-    gtk_widget_destroy(GTK_WIDGET(win));
+    clean();
     return EXIT_SUCCESS;
 }
