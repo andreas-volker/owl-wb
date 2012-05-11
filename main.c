@@ -8,9 +8,9 @@
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
-#define GWIN(x) (GTK_WIDGET((x)->win)->window)
-#define XWIN(x) (GDK_WINDOW_XID(GWIN(x)))
-#define LEN(x)  (sizeof (x) / sizeof ((x)[0]))
+#define GWIN(X) (GTK_WIDGET((X)->win)->window)
+#define XWIN(X) (GDK_WINDOW_XID(GWIN(X)))
+#define LEN(X)  (sizeof (X) / sizeof ((X)[0]))
 #define LOCK    (GDK_LOCK_MASK|GDK_MOD2_MASK|GDK_MOD3_MASK)
 #define MOD     (GDK_SHIFT_MASK|GDK_CONTROL_MASK|\
                  GDK_MOD1_MASK|GDK_MOD4_MASK|GDK_MOD5_MASK)
