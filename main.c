@@ -9,7 +9,7 @@
 #include <webkit/webkit.h>
 
 #define GWIN(x) (GTK_WIDGET((x)->win)->window)
-#define XWIN(x) (GDK_WINDOW_XID(GWIN(w)))
+#define XWIN(x) (GDK_WINDOW_XID(GWIN(x)))
 #define LEN(x)  (sizeof (x) / sizeof ((x)[0]))
 #define LOCK    (GDK_LOCK_MASK|GDK_MOD2_MASK|GDK_MOD3_MASK)
 #define MOD     (GDK_SHIFT_MASK|GDK_CONTROL_MASK|\
@@ -57,6 +57,7 @@ static void status(GObject*, GParamSpec*, void*);
 /* key.c */
 static void keyexec(Win*, Arg*);
 static void keyfind(Win*, Arg*);
+static void keynewwin(Win*, Arg*);
 static void keyprevnext(Win*, Arg*);
 static void keyreload(Win*, Arg*);
 static void keyscroll(Win*, Arg*);

@@ -28,6 +28,7 @@ static Key keys[] = {
     { CTRL,         "o",    keyexec,        { .c = SET(FIND, "_OWL_FIND")   }},
     { CTRL|SHIFT,   "o",    keyexec,        { .c = DEL("_OWL_FIND")         }},
     { 0,            "f",    keyexec,        { .c = SET(URI, "_OWL_URI")     }},
+    { SHIFT,        "f",    keynewwin,      { 0                             }},
     { CTRL|SHIFT,   "f",    keyexec,        { .c = DEL("_OWL_URI")          }},
     { 0,            "h",    keyscroll,      { .i = LEFT                     }},
     { 0,            "j",    keyscroll,      { .i = DOWN                     }},
@@ -56,6 +57,16 @@ keyexec(Win *w, Arg *a) {
 void
 keyfind(Win *w, Arg *a) {
     win_find(w, a->b);
+}
+
+void
+keynewwin(Win *w, Arg *a) {
+    Win *n;
+    (void)w; (void)a;
+
+    n = win_create();
+    XChangeProperty(data.dpy, XWIN(n), atoms[_OWL_URI], XA_STRING, 8,
+                    PropModeReplace, (unsigned char*)"", 1);
 }
 
 void
