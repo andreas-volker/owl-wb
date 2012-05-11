@@ -59,6 +59,7 @@ static void keyexec(Win*, Arg*);
 static void keyfind(Win*, Arg*);
 static void keyprevnext(Win*, Arg*);
 static void keyreload(Win*, Arg*);
+static void keyscroll(Win*, Arg*);
 static void keystop(Win*, Arg*);
 /* main.c */
 static void clean(void);

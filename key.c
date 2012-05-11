@@ -1,3 +1,5 @@
+enum { LEFT = -4, RIGHT, UP, DOWN };
+
 #define URI  "`printf \"%s\\n%s\" $owlhome $owluri | dmenu`"
 #define FIND "`xprop -id $owlxid _OWL_FIND | grep '\"' | cut -d '\"' -f 2 | "\
              "dmenu`"
@@ -8,6 +10,16 @@
 #define CTRL (GDK_CONTROL_MASK)
 #define SHIFT (GDK_SHIFT_MASK)
 static Key keys[] = {
+    { 0,            "0",    keyscroll,      { .i = 0                        }},
+    { 0,            "1",    keyscroll,      { .i = 11                       }},
+    { 0,            "2",    keyscroll,      { .i = 22                       }},
+    { 0,            "3",    keyscroll,      { .i = 33                       }},
+    { 0,            "4",    keyscroll,      { .i = 44                       }},
+    { 0,            "5",    keyscroll,      { .i = 55                       }},
+    { 0,            "6",    keyscroll,      { .i = 66                       }},
+    { 0,            "7",    keyscroll,      { .i = 77                       }},
+    { 0,            "8",    keyscroll,      { .i = 88                       }},
+    { 0,            "9",    keyscroll,      { .i = 99                       }},
     { 0,            "u",    keyprevnext,    { .i = -1                       }},
     { 0,            "i",    keyreload,      { .b = FALSE                    }},
     { SHIFT,        "i",    keyreload,      { .b = TRUE                     }},
@@ -17,9 +29,15 @@ static Key keys[] = {
     { CTRL|SHIFT,   "o",    keyexec,        { .c = DEL("_OWL_FIND")         }},
     { 0,            "f",    keyexec,        { .c = SET(URI, "_OWL_URI")     }},
     { CTRL|SHIFT,   "f",    keyexec,        { .c = DEL("_OWL_URI")          }},
+    { 0,            "h",    keyscroll,      { .i = LEFT                     }},
+    { 0,            "j",    keyscroll,      { .i = DOWN                     }},
+    { 0,            "k",    keyscroll,      { .i = UP                       }},
+    { 0,            "l",    keyscroll,      { .i = RIGHT                    }},
     { 0,            "m",    keyprevnext,    { .i = +1                       }},
     { 0,            ",",    keystop,        { 0                             }},
 };
+#undef CTRL
+#undef SHIFT
 #undef URI
 #undef FIND
 #undef DEL
@@ -51,6 +69,22 @@ keyreload(Win *w, Arg *a) {
         webkit_web_view_reload_bypass_cache(w->web);
     else
         webkit_web_view_reload(w->web);
+}
+
+void
+keyscroll(Win *w, Arg *a) {
+    double d, v, u;
+    GtkAdjustment *adj;
+
+    adj = a->i == LEFT || a->i == RIGHT ?
+          gtk_scrolled_window_get_hadjustment(w->scroll) :
+          gtk_scrolled_window_get_vadjustment(w->scroll);
+    v = gtk_adjustment_get_value(adj);
+    u = gtk_adjustment_get_upper(adj) - gtk_adjustment_get_page_size(adj);
+    d = a->i == RIGHT || a->i == DOWN ? v + STEP :
+        (a->i == LEFT || a->i == UP   ? v - STEP : (u / 99) * a->i);
+    d = CLAMP(d, 0, u);
+    gtk_adjustment_set_value(adj, d);
 }
 
 void
