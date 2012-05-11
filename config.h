@@ -1,0 +1,4 @@
+#define HOMEPAGE "ddg.gg"
+#define CASEFIND FALSE
+#define SHOW_HSCROLL FALSE
+#define SHOW_VSCROLL FALSE

@@ -13,10 +13,10 @@ event_init(Win *w) {
 }
 
 gboolean
-delwin(GtkWidget *gw, GdkEvent *e, Win *w) {
+delwin(GtkWidget *gw, GdkEvent *e, void *ptr) {
     (void)gw; (void)e;
 
-    win_destroy(w);
+    win_destroy((Win*)ptr);
     return TRUE;
 }
 
@@ -28,7 +28,7 @@ grabdom(GObject *o, WebKitDOMEvent *e, void *ptr) {
 }
 
 gboolean
-keypress(GtkWidget *gw, GdkEvent *e, Win *w) {
+keypress(GtkWidget *gw, GdkEvent *e, void *ptr) {
     int i;
     char a[7], *c;
     GdkKeymap *km;
@@ -47,7 +47,7 @@ keypress(GtkWidget *gw, GdkEvent *e, Win *w) {
     for(i = 0; i < (int)LEN(keys); i++)
         if((!strcmp(keys[i].key, c) || !strcmp(keys[i].key, a)) &&
            keys[i].func && ((e->key.state & ~LOCK & MOD) == keys[i].mod)) {
-            keys[i].func(w, &(keys[i].arg));
+            keys[i].func((Win*)ptr, &(keys[i].arg));
             return TRUE;
         }
     return FALSE;
@@ -77,7 +77,8 @@ scrollbars(WebKitWebFrame *f) {
 }
 
 void
-status(GObject *o, GParamSpec *ps, Win *w) {
+status(GObject *o, GParamSpec *ps, void *ptr) {
+    Win *w;
     unsigned long i, len;
     WebKitDOMNode *n;
     WebKitLoadStatus s;
@@ -85,6 +86,7 @@ status(GObject *o, GParamSpec *ps, Win *w) {
     WebKitDOMNodeList *e;
     (void)o; (void)ps;
 
+    w = (Win*)ptr;
     s = webkit_web_view_get_load_status(w->web);
     if(s == WEBKIT_LOAD_FINISHED) {
         d = webkit_web_view_get_dom_document(w->web);

@@ -9,7 +9,7 @@ LD = $(CC)
 
 INCS = -I. -I/usr/include
 INCS+= `pkg-config --cflags gtk+-2.0 webkit-1.0`
-LIBS = -L/usr/lib -lc
+LIBS = -L/usr/lib -lc -lX11
 LIBS+= `pkg-config --libs  gtk+-2.0 webkit-1.0`
 
 CPPFLAGS+= -DVERSION=\"$(VERSION)\" -DPROGRAM=\"$(PROGRAM)\"
@@ -35,7 +35,7 @@ all: $(PROGRAM)
 $(PROGRAM): $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $<
 
-$(OBJ): $(SRC) *.c
+$(OBJ): $(SRC) *.c *.h
 	$(CC) $(CFLAGS) -c $<
 
 clean:

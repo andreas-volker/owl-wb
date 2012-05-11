@@ -3,9 +3,13 @@
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
+#include <X11/Xatom.h>
+#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
+#define GWIN(x) (GTK_WIDGET((x)->win)->window)
+#define XWIN(x) (GDK_WINDOW_XID(GWIN(w)))
 #define LEN(x)  (sizeof (x) / sizeof ((x)[0]))
 #define LOCK    (GDK_LOCK_MASK|GDK_MOD2_MASK|GDK_MOD3_MASK)
 #define MOD     (GDK_SHIFT_MASK|GDK_CONTROL_MASK|\
@@ -31,20 +35,28 @@ typedef struct {
 } Key;
 
 struct {
+    Display *dpy;
     GList   *wins;
     Key     *keys;
 } data;
 
+/* atom.c */
+static void atom_init(void);
+static gboolean atom_get(Win*, Atom, Atom, long, unsigned char**);
+static GdkFilterReturn atom_propertynotify(GdkXEvent*, GdkEvent*, void*);
+static char *atom_str(int);
 /* event.c */
 static void event_init(Win*);
-static gboolean delwin(GtkWidget*, GdkEvent*, Win*);
+static gboolean delwin(GtkWidget*, GdkEvent*, void*);
 static void grabdom(GObject*, WebKitDOMEvent*, void*);
-static gboolean keypress(GtkWidget*, GdkEvent*, Win*);
+static gboolean keypress(GtkWidget*, GdkEvent*, void*);
 static gboolean message(WebKitWebView*, char*, int, char*);
 static WebKitWebView* newwin(WebKitWebView*, WebKitWebFrame*);
 static gboolean scrollbars(WebKitWebFrame*);
-static void status(GObject*, GParamSpec*, Win*);
+static void status(GObject*, GParamSpec*, void*);
 /* key.c */
+static void keyexec(Win*, Arg*);
+static void keyfind(Win*, Arg*);
 static void keyprevnext(Win*, Arg*);
 static void keyreload(Win*, Arg*);
 static void keystop(Win*, Arg*);
@@ -59,9 +71,12 @@ static char *estrdup(char*);
 /* win.c */
 static Win *win_create(void);
 static void win_destroy(void*);
-static void win_load(Win*, char*);
+static void win_find(Win*, gboolean);
+static void win_load(Win*);
 
+#include "config.h"
 #include "util.c"
+#include "atom.c"
 #include "win.c"
 #include "key.c"
 #include "event.c"
@@ -76,9 +91,11 @@ init(int *argc, char ***argv) {
     Win *w;
 
     gtk_init(&(*argc), &(*argv));
+    data.dpy = gdk_x11_get_default_xdisplay();
     data.wins = NULL;
+    atom_init();
     w = win_create();
-    win_load(w, (*argv)[1]);
+    win_load(w);
     signal(SIGINT, sighdl);
     signal(SIGTERM, sighdl);
 }
