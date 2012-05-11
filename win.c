@@ -57,15 +57,32 @@ win_find(Win *w, gboolean b) {
 void
 win_load(Win *w) {
     char *c, *s, buf[BUFSIZ];
+    unsigned int i;
     unsigned char *p;
+    struct { char *id, *c; } alias[] = {
+        { "wiki",   "%s.wikipedia.org"          },
+        { "ddg",    "duckduckgo.com/?q=%s"      },
+        { "git",    "github.com/andreas-volker" },
+    };
 
     if(!atom_get(w, atoms[_OWL_URI], XA_STRING, sizeof(buf), &p))
         return;
-    memset(&buf, '\0', sizeof(buf));
     c = !p ? "about:blank" : (!strcmp((char*)p, "") ? HOMEPAGE : (char*)p);
+    s = estrdup(c);
+    for(i = 0; s[i] && s[i] != ' '; i++);
+    s[i] = '\0';
     c = strstr(c, ":") || strstr(c, "/") || strstr(c, ".") ? g_strdup(c) :
         g_strdup_printf(SEARCH, c);
     XFree(p);
+    for(i = 0; i < LEN(alias); i++) {
+        if(strcmp(s, alias[i].id) != 0)
+            continue;
+        g_free(c);
+        c = strchr(s, '\0');
+        c = strstr(alias[i].c, "%s") ? g_strdup_printf(alias[i].c, ++c) :
+            g_strdup(alias[i].c);
+    }
+    free(s);
     s = g_file_test(c, G_FILE_TEST_EXISTS) ? "file://" :
         (!strstr(c, ":") ? "http://" : "");
     snprintf(buf, sizeof(buf), "%s%s", s, c);
