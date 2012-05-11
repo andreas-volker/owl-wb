@@ -1,7 +1,8 @@
 #define URI  "`printf \"%s\\n%s\" $owlhome $owluri | dmenu`"
 #define FIND "`xprop -id $owlxid _OWL_FIND | grep '\"' | cut -d '\"' -f 2 | "\
              "dmenu`"
-#define SET(a, b) "str=\""a"\" && xprop -id $owlxid -f "b" 8s -set "b" \"$str\""
+#define SET(a, b) "str=\""a"\" && xprop -id $owlxid -f "b" 8s -set "b\
+                  " \"$str\""
 #define DEL(x) "xprop -id $owlxid -remove "x""
 
 #define CTRL (GDK_CONTROL_MASK)

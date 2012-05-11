@@ -17,8 +17,6 @@ win_create(void) {
     h = SHOW_HSCROLL ? GTK_POLICY_AUTOMATIC : GTK_POLICY_NEVER;
     v = SHOW_VSCROLL ? GTK_POLICY_AUTOMATIC : GTK_POLICY_NEVER;
     gtk_scrolled_window_set_policy(w->scroll, h, v);
-    XChangeProperty(data.dpy, XWIN(w), atoms[_OWL_URI], XA_STRING, 8,
-                    PropModeReplace, (unsigned char*)"", 1);
     return w;
 }
 
@@ -63,12 +61,14 @@ win_load(Win *w) {
 
     if(!atom_get(w, atoms[_OWL_URI], XA_STRING, sizeof(buf), &p))
         return;
-    c = !p ? estrdup("about:blank") : (!strcmp((char*)p, "") ?
-        estrdup(HOMEPAGE) : estrdup((char*)p));
+    memset(&buf, '\0', sizeof(buf));
+    c = !p ? "about:blank" : (!strcmp((char*)p, "") ? HOMEPAGE : (char*)p);
+    c = strstr(c, ":") || strstr(c, "/") || strstr(c, ".") ? g_strdup(c) :
+        g_strdup_printf(SEARCH, c);
     XFree(p);
     s = g_file_test(c, G_FILE_TEST_EXISTS) ? "file://" :
         (!strstr(c, ":") ? "http://" : "");
     snprintf(buf, sizeof(buf), "%s%s", s, c);
+    g_free(c);
     webkit_web_view_load_uri(w->web, buf);
-    free(c);
 }

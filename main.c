@@ -89,12 +89,24 @@ clean(void) {
 void
 init(int *argc, char ***argv) {
     Win *w;
+    int i;
+    char buf[BUFSIZ], tmp[BUFSIZ];
 
+    memset(&buf, '\0', sizeof(buf));
+    if(*argc > 1) {
+        strncpy(buf, (*argv)[1], sizeof(buf));
+        for(i = 2; i < *argc; i++) {
+            snprintf(tmp, sizeof(tmp), "%s %s", buf, (*argv)[i]);
+            strncpy(buf, tmp, sizeof(buf));
+        }
+    }
     gtk_init(&(*argc), &(*argv));
     data.dpy = gdk_x11_get_default_xdisplay();
     data.wins = NULL;
     atom_init();
     w = win_create();
+    XChangeProperty(data.dpy, XWIN(w), atoms[_OWL_URI], XA_STRING, 8,
+                    PropModeReplace, (unsigned char*)buf, strlen(buf) + 1);
     win_load(w);
     signal(SIGINT, sighdl);
     signal(SIGTERM, sighdl);
