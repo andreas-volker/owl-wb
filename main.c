@@ -25,6 +25,7 @@ typedef struct {
     GtkWindow           *win;
     GtkScrolledWindow   *scroll;
     WebKitWebView       *web;
+    gboolean            ignore, zoom;
 } Win;
 
 typedef struct {
@@ -52,16 +53,19 @@ static void grabdom(GObject*, WebKitDOMEvent*, void*);
 static gboolean keypress(GtkWidget*, GdkEvent*, void*);
 static gboolean message(WebKitWebView*, char*, int, char*);
 static WebKitWebView* newwin(WebKitWebView*, WebKitWebFrame*);
+static void resize(GtkWidget*, GdkRectangle*, void*);
 static gboolean scrollbars(WebKitWebFrame*);
 static void status(GObject*, GParamSpec*, void*);
 /* key.c */
 static void keyexec(Win*, Arg*);
 static void keyfind(Win*, Arg*);
+static void keyfocus(Win*, Arg*);
 static void keynewwin(Win*, Arg*);
 static void keyprevnext(Win*, Arg*);
 static void keyreload(Win*, Arg*);
 static void keyscroll(Win*, Arg*);
 static void keystop(Win*, Arg*);
+static void keyzoom(Win*, Arg*);
 /* main.c */
 static void clean(void);
 static void init(int*, char***);

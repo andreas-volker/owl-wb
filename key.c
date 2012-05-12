@@ -1,4 +1,5 @@
 enum { LEFT = -4, RIGHT, UP, DOWN };
+enum { IN, OUT, RESET };
 
 #define URI  "`printf \"%s\\n%s\" $owlhome $owluri | dmenu`"
 #define FIND "`xprop -id $owlxid _OWL_FIND | grep '\"' | cut -d '\"' -f 2 | "\
@@ -27,6 +28,9 @@ static Key keys[] = {
     { SHIFT,        "o",    keyfind,        { .b = FALSE                    }},
     { CTRL,         "o",    keyexec,        { .c = SET(FIND, "_OWL_FIND")   }},
     { CTRL|SHIFT,   "o",    keyexec,        { .c = DEL("_OWL_FIND")         }},
+    { 0,            "p",    keyzoom,        { .i = IN                       }},
+    { SHIFT,        "p",    keyzoom,        { .i = OUT                      }},
+    { CTRL,         "p",    keyzoom,        { .i = RESET                    }},
     { 0,            "f",    keyexec,        { .c = SET(URI, "_OWL_URI")     }},
     { SHIFT,        "f",    keynewwin,      { 0                             }},
     { CTRL|SHIFT,   "f",    keyexec,        { .c = DEL("_OWL_URI")          }},
@@ -34,6 +38,9 @@ static Key keys[] = {
     { 0,            "j",    keyscroll,      { .i = DOWN                     }},
     { 0,            "k",    keyscroll,      { .i = UP                       }},
     { 0,            "l",    keyscroll,      { .i = RIGHT                    }},
+    { 0,            "ç",    keyfocus,       { .i = RESET                    }},
+    { SHIFT,        "ç",    keyfocus,       { .i = IN                       }},
+    { CTRL,         "ç",    keyfocus,       { .i = OUT                      }},
     { 0,            "m",    keyprevnext,    { .i = +1                       }},
     { 0,            ",",    keystop,        { 0                             }},
 };
@@ -60,13 +67,21 @@ keyfind(Win *w, Arg *a) {
 }
 
 void
+keyfocus(Win *w, Arg *a) {
+    GtkWidget *gw;
+
+    w->ignore = a->i == IN;
+    gw = a->i == RESET || a->i == IN ? GTK_WIDGET(w->web) : (a->i == OUT ?
+         GTK_WIDGET(w->scroll) : NULL);
+    if(gw)
+        gtk_widget_grab_focus(gw);
+}
+
+void
 keynewwin(Win *w, Arg *a) {
-    Win *n;
     (void)w; (void)a;
 
-    n = win_create();
-    XChangeProperty(data.dpy, XWIN(n), atoms[_OWL_URI], XA_STRING, 8,
-                    PropModeReplace, (unsigned char*)"", 1);
+    win_create();
 }
 
 void
@@ -103,4 +118,15 @@ keystop(Win *w, Arg *a) {
     (void)a;
 
     webkit_web_view_stop_loading(w->web);
+}
+
+void
+keyzoom(Win *w, Arg *a) {
+    float f;
+
+    w->zoom = a->i != RESET;
+    f = webkit_web_view_get_zoom_level(w->web);
+    f = a->i == IN ? f + 0.1 : (a->i == OUT ? MAX(f - 0.1, 0.1) :
+        (a->i == RESET ? ZOOM : f));
+    webkit_web_view_set_zoom_level(w->web, f);
 }

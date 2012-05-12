@@ -1,13 +1,20 @@
 Win*
 win_create(void) {
     Win *w;
+    GdkGeometry g;
     GtkPolicyType h, v;
 
     w = emalloc(sizeof(Win));
     w->win = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
     w->scroll = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
     w->web = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    w->ignore = w->zoom = FALSE;
+    g.min_width = g.min_height = 1;
     data.wins = g_list_append(data.wins, w);
+    webkit_web_view_set_full_content_zoom(w->web, TRUE);
+    webkit_web_view_set_zoom_level(w->web, ZOOM);
+    gtk_window_set_geometry_hints(w->win, NULL, &g, GDK_HINT_MIN_SIZE);
+    gtk_window_set_default_size(w->win, WIDTH, HEIGHT);
     gtk_container_add(GTK_CONTAINER(w->scroll), GTK_WIDGET(w->web));
     gtk_container_add(GTK_CONTAINER(w->win), GTK_WIDGET(w->scroll));
     gtk_widget_show_all(GTK_WIDGET(w->win));
@@ -17,6 +24,7 @@ win_create(void) {
     h = SHOW_HSCROLL ? GTK_POLICY_AUTOMATIC : GTK_POLICY_NEVER;
     v = SHOW_VSCROLL ? GTK_POLICY_AUTOMATIC : GTK_POLICY_NEVER;
     gtk_scrolled_window_set_policy(w->scroll, h, v);
+    gtk_widget_grab_focus(GTK_WIDGET(w->web));
     return w;
 }
 

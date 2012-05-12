@@ -3,7 +3,8 @@ event_init(Win *w) {
     g_signal_connect(G_OBJECT(webkit_web_view_get_main_frame(w->web)),
     "scrollbars-policy-changed",    G_CALLBACK(scrollbars), NULL);
     g_object_connect(G_OBJECT(w->win),
-    "signal::delete_event",         G_CALLBACK(delwin),     w, NULL);
+    "signal::delete_event",         G_CALLBACK(delwin),     w,
+    "signal::size-allocate",        G_CALLBACK(resize),     w, NULL);
     g_object_connect(G_OBJECT(w->scroll),
     "signal::key-press-event",      G_CALLBACK(keypress),   w, NULL);
     g_object_connect(G_OBJECT(w->web),
@@ -46,7 +47,8 @@ keypress(GtkWidget *gw, GdkEvent *e, void *ptr) {
     a[i] = '\0';
     for(i = 0; i < (int)LEN(keys); i++)
         if((!strcmp(keys[i].key, c) || !strcmp(keys[i].key, a)) &&
-           keys[i].func && ((e->key.state & ~LOCK & MOD) == keys[i].mod)) {
+           keys[i].func && ((e->key.state & ~LOCK & MOD) == keys[i].mod) &&
+           (!((Win*)ptr)->ignore || keys[i].func == keyfocus)) {
             keys[i].func((Win*)ptr, &(keys[i].arg));
             return TRUE;
         }
@@ -67,6 +69,17 @@ newwin(WebKitWebView *v, WebKitWebFrame *f) {
 
     w = win_create();
     return w->web;
+}
+
+void
+resize(GtkWidget *gw, GdkRectangle *r, void *ptr) {
+    float f;
+    (void)gw;
+
+    if(((Win*)ptr)->zoom)
+        return;
+    f = CLAMP(r->width * 0.0015, 0.1, ZOOM);
+    webkit_web_view_set_zoom_level(((Win*)ptr)->web, f);
 }
 
 gboolean

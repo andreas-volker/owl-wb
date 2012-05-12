@@ -4,3 +4,6 @@
 #define SHOW_VSCROLL FALSE
 #define SEARCH "duckduckgo.com/?q=%s"
 #define STEP 44
+#define ZOOM 0.8
+#define WIDTH 640
+#define HEIGHT 480
