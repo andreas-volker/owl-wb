@@ -37,9 +37,10 @@ typedef struct {
 } Key;
 
 struct {
-    Display *dpy;
-    GList   *wins;
-    Key     *keys;
+    SoupCookieJar   *jar;
+    Display         *dpy;
+    GList           *wins;
+    Key             *keys;
 } data;
 
 /* atom.c */
@@ -49,6 +50,7 @@ static GdkFilterReturn atom_propertynotify(GdkXEvent*, GdkEvent*, void*);
 static char *atom_str(int);
 /* event.c */
 static void event_init(Win*);
+static void cookie(SoupCookieJar*, SoupCookie*, SoupCookie*);
 static gboolean delwin(GtkWidget*, GdkEvent*, void*);
 static void grabdom(GObject*, WebKitDOMEvent*, void*);
 static gboolean keypress(GtkWidget*, GdkEvent*, void*);
@@ -97,7 +99,8 @@ void
 init(int *argc, char ***argv) {
     Win *w;
     int i;
-    char buf[BUFSIZ], tmp[BUFSIZ];
+    char *dir, *c, buf[BUFSIZ], tmp[BUFSIZ];
+    SoupSession *s;
 
     memset(&buf, '\0', sizeof(buf));
     if(*argc > 1) {
@@ -110,6 +113,21 @@ init(int *argc, char ***argv) {
     gtk_init(&(*argc), &(*argv));
     data.dpy = gdk_x11_get_default_xdisplay();
     data.wins = NULL;
+    dir = g_str_has_prefix(OWLDIR, "/") ?
+          g_strdup(OWLDIR) : g_build_filename(g_get_home_dir(), OWLDIR, NULL);
+    if(!g_file_test(dir, G_FILE_TEST_EXISTS))
+        g_mkdir_with_parents(dir, 0700);
+    else if(!g_file_test(dir, G_FILE_TEST_IS_DIR))
+        eprintf("\"%s\" is not a directory.\n", dir);
+    s = webkit_get_default_session();
+    c = g_build_filename(dir, COOKIEFILE, NULL);
+    g_free(dir);
+    data.jar = soup_cookie_jar_text_new(c, FALSE);
+    g_free(c);
+    soup_session_add_feature(s, SOUP_SESSION_FEATURE(data.jar));
+    soup_cookie_jar_set_accept_policy(data.jar, (USECOOKIE ?
+                                      SOUP_COOKIE_JAR_ACCEPT_ALWAYS :
+                                      SOUP_COOKIE_JAR_ACCEPT_NEVER));
     atom_init();
     w = win_create();
     XChangeProperty(data.dpy, XWIN(w), atoms[_OWL_URI], XA_STRING, 8,

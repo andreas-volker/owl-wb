@@ -7,3 +7,6 @@
 #define ZOOM 0.8
 #define WIDTH 640
 #define HEIGHT 480
+#define OWLDIR ".owl-browser"
+#define COOKIEFILE "cookie"
+#define USECOOKIE TRUE

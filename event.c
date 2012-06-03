@@ -2,6 +2,7 @@ void
 event_init(Win *w) {
     g_signal_connect(G_OBJECT(webkit_web_view_get_main_frame(w->web)),
     "scrollbars-policy-changed",    G_CALLBACK(scrollbars), NULL);
+    g_signal_connect(G_OBJECT(data.jar), "changed", G_CALLBACK(cookie), NULL);
     g_object_connect(G_OBJECT(w->win),
     "signal::delete_event",         G_CALLBACK(delwin),     w,
     "signal::size-allocate",        G_CALLBACK(resize),     w, NULL);
@@ -13,6 +14,12 @@ event_init(Win *w) {
     "signal::console-message",      G_CALLBACK(message), NULL, NULL);
 }
 
+void
+cookie(SoupCookieJar *j, SoupCookie *old, SoupCookie *new) {
+    (void)j;
+
+    soup_cookie_set_max_age((new ? new : old), SOUP_COOKIE_MAX_AGE_ONE_YEAR);
+}
 gboolean
 delwin(GtkWidget *gw, GdkEvent *e, void *ptr) {
     (void)gw; (void)e;
