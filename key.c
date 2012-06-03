@@ -53,12 +53,24 @@ static Key keys[] = {
 
 void
 keyexec(Win *w, Arg *a) {
-    char buf[BUFSIZ];
+    char *v[4];
 
-    snprintf(buf, sizeof(buf), "owlxid=\"%u\" && owluri=\"%s\" && "
-             "owlhome=\"%s\" && %s", (unsigned int)XWIN(w),
-             webkit_web_view_get_uri(w->web), HOMEPAGE, a->c);
-    system(buf);
+    v[0] = "/bin/sh";
+    v[1] = "-c";
+    v[2] = g_strdup_printf("owlxid=\"%u\" && owluri=\"%s\" && owlhome=\"%s\" "
+                           "&& %s", (unsigned int)XWIN(w),
+                           webkit_web_view_get_uri(w->web), HOMEPAGE, a->c);
+    v[3] = NULL;
+	if(fork() == 0) {
+        if(fork() == 0) {
+            setsid();
+            execvp(v[0], v);
+            perror(v[0]);
+        }
+        exit(EXIT_SUCCESS);
+    }
+    wait(0);
+    g_free(v[2]);
 }
 
 void

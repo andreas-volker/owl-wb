@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include <X11/Xatom.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
