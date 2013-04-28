@@ -1,4 +1,4 @@
-PROGRAM = owl-browser
+PROGRAM = owl-wb
 VERSION = 0.1.0
 
 PREFIX = $(DESTDIR)/usr
